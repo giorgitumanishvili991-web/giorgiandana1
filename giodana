@@ -1,0 +1,962 @@
+html_content = """<!DOCTYPE html>
+<html lang="ka">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>გიორგი & ანა 🐾 | ჩვენი ექსკლუზიური სივრცე</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --primary: #ff758c;
+            --primary-hover: #ff4b6e;
+            --secondary: #ff7eb3;
+            --accent: #ffb199;
+            --bg-start: #ffdde1;
+            --bg-end: #ee9ca7;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #4a3e3d;
+            --text-muted: #8c7b79;
+            --shadow: 0 10px 30px rgba(238, 156, 167, 0.35);
+            --border-radius: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            color: var(--text-main);
+            background-attachment: fixed;
+        }
+
+        /* Login Screen */
+        #login-screen {
+            background: var(--card-bg);
+            padding: 40px 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        #login-screen h1 {
+            font-family: 'Fredoka', cursive;
+            color: var(--primary);
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        #login-screen p {
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+
+        .passcode-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.5rem;
+            text-align: center;
+            letter-spacing: 8px;
+            border: 2px solid #ffd3b6;
+            border-radius: 15px;
+            outline: none;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .passcode-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 12px rgba(255, 117, 140, 0.4);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 5px 15px rgba(255, 117, 140, 0.4);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 117, 140, 0.6);
+        }
+
+        /* App Main Container */
+        #app-container {
+            display: none;
+            width: 100%;
+            max-width: 1050px;
+            background: var(--card-bg);
+            border-radius: 28px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        header {
+            background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,235,238,0.9));
+            padding: 18px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #ffe4e8;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            font-size: 2.2rem;
+            animation: bounce 2s infinite;
+        }
+
+        .brand h2 {
+            font-family: 'Fredoka', cursive;
+            color: var(--primary);
+            font-size: 1.6rem;
+        }
+
+        .brand span {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        .user-switch {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #fff0f3;
+            padding: 8px 16px;
+            border-radius: 50px;
+            border: 1px solid #ffccd5;
+        }
+
+        .user-switch label {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--primary);
+        }
+
+        .user-options {
+            display: flex;
+            gap: 8px;
+        }
+
+        .user-chip {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: none;
+            background: transparent;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .user-chip.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 10px rgba(255, 117, 140, 0.3);
+        }
+
+        .avatar-select-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 2px;
+            transition: transform 0.2s;
+        }
+
+        .avatar-select-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.7);
+            border-bottom: 1px solid #ffe4e8;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+            background: rgba(255, 240, 243, 0.5);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: #ffffff;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 25px;
+            min-height: 480px;
+            max-height: 72vh;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        /* 1. Chat Tab */
+        .chat-box {
+            display: flex;
+            flex-direction: column;
+            height: 460px;
+            background: #fff9fa;
+            border-radius: 18px;
+            border: 1px solid #ffe0e6;
+            padding: 15px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-right: 5px;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .message.mine {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 3px 10px rgba(255, 117, 140, 0.25);
+        }
+
+        .message.other {
+            align-self: flex-start;
+            background: #ffffff;
+            color: var(--text-main);
+            border-bottom-left-radius: 4px;
+            border: 1px solid #ffe0e6;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.03);
+        }
+
+        .message-header {
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            opacity: 0.85;
+        }
+
+        .message-time {
+            font-size: 0.68rem;
+            margin-top: 5px;
+            text-align: right;
+            opacity: 0.7;
+        }
+
+        .chat-img {
+            max-width: 100%;
+            max-height: 220px;
+            border-radius: 12px;
+            margin-top: 5px;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.8);
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            align-items: center;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 1px solid #ffd3b6;
+            border-radius: 25px;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        .img-upload-btn {
+            background: #ffe0e6;
+            border: 1px solid #ffccd5;
+            color: var(--primary);
+            padding: 10px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .img-upload-btn:hover {
+            background: #ffd3b6;
+        }
+
+        .send-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.08);
+            background: var(--primary-hover);
+        }
+
+        /* 2. Planner Tab */
+        .planner-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 700px) {
+            .planner-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 18px;
+            border: 1px solid #ffe0e6;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+
+        .panel h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-family: 'Fredoka', cursive;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"], input[type="time"], input[type="url"], select, textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid #ffccd5;
+            border-radius: 12px;
+            outline: none;
+            font-size: 0.9rem;
+            background: #fffcfc;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            background: #ffffff;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 11px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-action:hover {
+            background: var(--primary-hover);
+        }
+
+        .item-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .item-card {
+            background: #fff8f9;
+            padding: 12px 15px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-card-info strong {
+            display: block;
+            color: var(--primary);
+            font-size: 0.85rem;
+        }
+
+        /* 3. Gallery Tab */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .gallery-item {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid #ffe0e6;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+        }
+
+        .gallery-item p {
+            padding: 8px 10px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        /* Avatar Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 22px;
+            text-align: center;
+            max-width: 320px;
+            width: 90%;
+        }
+
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+            font-size: 2rem;
+        }
+
+        .avatar-option {
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 12px;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .avatar-option:hover {
+            background: #ffe0e6;
+            transform: scale(1.15);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .footer-note {
+            text-align: center;
+            padding: 12px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid #ffe4e8;
+            background: rgba(255,255,255,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Passcode Screen -->
+    <div id="login-screen">
+        <h1>🐾 1928 🐾</h1>
+        <p>გიორგის & ანას პირადი ოთახი<br>შეიყვანეთ საიდუმლო კოდი შესასვლელად</p>
+        <input type="password" id="passcode" class="passcode-input" maxlength="4" placeholder="••••" autofocus>
+        <button class="login-btn" onclick="checkPasscode()">ოთახში შესვლა ✨</button>
+    </div>
+
+    <!-- 2. Main Workspace -->
+    <div id="app-container">
+        <header>
+            <div class="brand">
+                <div class="brand-icon">🐱</div>
+                <div>
+                    <h2>გიორგი & ანა</h2>
+                    <span>ჩვენი პირადი კატური სამყარო 💖</span>
+                </div>
+            </div>
+
+            <div class="user-switch">
+                <label>მე ვარ:</label>
+                <div class="user-options">
+                    <button class="user-chip active" id="chip-გიორგი" onclick="setUser('გიორგი')">
+                        <span id="avatar-გიორგი">🐱</span> გიორგი
+                    </button>
+                    <button class="user-chip" id="chip-ანა" onclick="setUser('ანა')">
+                        <span id="avatar-ანა">😸</span> ანა
+                    </button>
+                </div>
+                <button class="avatar-select-btn" onclick="openAvatarModal()" title="შეცვალე კატის აიქონი">🎨</button>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="tabs">
+            <button class="tab-btn active" onclick="switchTab('chat')">💬 ჩატი & ფოტოები</button>
+            <button class="tab-btn" onclick="switchTab('planner')">📅 დღის გეგმები</button>
+            <button class="tab-btn" onclick="switchTab('moods')">😻 ემოციები</button>
+            <button class="tab-btn" onclick="switchTab('gallery')">🖼️ ფოტოალბომი</button>
+        </nav>
+
+        <!-- Tab 1: Chat -->
+        <div id="tab-chat" class="tab-content active">
+            <div class="chat-box">
+                <div class="chat-messages" id="chat-messages"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="მიწერე საყვარელი შეტყობინება..." onkeypress="handleChatKeyPress(event)">
+                    <label class="img-upload-btn">
+                        🖼️
+                        <input type="file" id="chat-file-input" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
+                    </label>
+                    <button class="send-btn" onclick="sendMessage()">🐾</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Planner -->
+        <div id="tab-planner" class="tab-content">
+            <div class="planner-grid">
+                <div class="panel">
+                    <h3>📅 ახალი გეგმის დამატება</h3>
+                    <div class="form-group">
+                        <input type="time" id="plan-time">
+                        <input type="text" id="plan-text" placeholder="რას ვაპირებთ დღეს?">
+                        <button class="btn-action" onclick="addPlan()">გეგმის შენახვა 🐾</button>
+                    </div>
+                </div>
+                <div class="panel">
+                    <h3>🐾 დღევანდელი განრიგი</h3>
+                    <ul class="item-list" id="plan-list"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Moods -->
+        <div id="tab-moods" class="tab-content">
+            <div class="planner-grid">
+                <div class="panel">
+                    <h3>😻 როგორ გრძნობ თავს?</h3>
+                    <div class="form-group">
+                        <select id="mood-type">
+                            <option value="ძალიან ბედნიერი 😸">ძალიან ბედნიერი 😸</option>
+                            <option value="ძალიან მენატრები 😿">ძალიან მენატრები 😿</option>
+                            <option value="დაღლილი ვარ 🐾">დაღლილი ვარ 🐾</option>
+                            <option value="სიყვარულით სავსე 😻">სიყვარულით სავსე 😻</option>
+                            <option value="სეირნობა მინდა 🐾">სეირნობა მინდა 🐾</option>
+                        </select>
+                        <textarea id="mood-note" rows="3" placeholder="დაამატე პატარა ჩანაწერი..."></textarea>
+                        <button class="btn-action" onclick="addMood()">ემოციის გაზიარება 💞</button>
+                    </div>
+                </div>
+                <div class="panel">
+                    <h3>🐾 ბოლო ემოციები</h3>
+                    <ul class="item-list" id="mood-list"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Gallery -->
+        <div id="tab-gallery" class="tab-content">
+            <div class="panel">
+                <h3>🖼️ ჩვენი ფოტოები & კატები</h3>
+                <div class="form-group" style="flex-direction: row; gap: 10px;">
+                    <input type="text" id="gallery-title" placeholder="ფოტოს აღწერა..." style="flex:1;">
+                    <label class="btn-action" style="width:auto; padding: 11px 20px; text-align:center; cursor:pointer;">
+                        ფოტოს არჩევა 📷
+                        <input type="file" id="gallery-file-input" accept="image/*" style="display:none;" onchange="addGalleryPhoto(event)">
+                    </label>
+                </div>
+            </div>
+
+            <div class="gallery-grid" id="gallery-grid"></div>
+        </div>
+
+        <div class="footer-note">
+            მხოლოდ გიორგის და ანასთვის 🐾
+        </div>
+    </div>
+
+    <!-- Avatar Selection Modal -->
+    <div id="avatar-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="color: var(--primary);">აირჩიე კატის აიქონი 🐾</h3>
+            <div class="avatar-grid">
+                <span class="avatar-option" onclick="selectAvatar('🐱')">🐱</span>
+                <span class="avatar-option" onclick="selectAvatar('😸')">😸</span>
+                <span class="avatar-option" onclick="selectAvatar('😻')">😻</span>
+                <span class="avatar-option" onclick="selectAvatar('🙀')">🙀</span>
+                <span class="avatar-option" onclick="selectAvatar('😾')">😾</span>
+                <span class="avatar-option" onclick="selectAvatar('😽')">😽</span>
+                <span class="avatar-option" onclick="selectAvatar('😼')">😼</span>
+                <span class="avatar-option" onclick="selectAvatar('🐈')">🐈</span>
+            </div>
+            <button class="btn-action" onclick="closeAvatarModal()">დახურვა</button>
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            databaseURL: "https://giorgi-ana-love-default-rtdb.firebaseio.com/"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const SECRET_CODE = "1928";
+        let currentUser = localStorage.getItem('ga_user') || "გიორგი";
+        let userAvatars = {
+            "გიორგი": localStorage.getItem('ga_avatar_გიორგი') || "🐱",
+            "ანა": localStorage.getItem('ga_avatar_ანა') || "😸"
+        };
+
+        function checkPasscode() {
+            const input = document.getElementById('passcode').value;
+            if (input === SECRET_CODE) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-container').style.display = 'block';
+                initApp();
+            } else {
+                alert('არასწორი კოდი! 🐾 მხოლოდ გიორგი და ანა დაიშვებიან.');
+                document.getElementById('passcode').value = '';
+            }
+        }
+
+        document.getElementById('passcode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkPasscode();
+        });
+
+        function setUser(user) {
+            currentUser = user;
+            localStorage.setItem('ga_user', user);
+            document.querySelectorAll('.user-chip').forEach(chip => chip.classList.remove('active'));
+            document.getElementById(`chip-${user}`).classList.add('active');
+            renderChat();
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        function initApp() {
+            document.getElementById(`avatar-გიორგი`).innerText = userAvatars['გიორგი'];
+            document.getElementById(`avatar-ანა`).innerText = userAvatars['ანა'];
+            setUser(currentUser);
+
+            db.ref('chat').on('value', snapshot => {
+                const data = snapshot.val();
+                window.chatData = data ? Object.values(data) : [];
+                renderChat();
+            });
+
+            db.ref('plans').on('value', snapshot => {
+                const data = snapshot.val();
+                window.plansData = data ? Object.values(data) : [];
+                renderPlans();
+            });
+
+            db.ref('moods').on('value', snapshot => {
+                const data = snapshot.val();
+                window.moodsData = data ? Object.values(data) : [];
+                renderMoods();
+            });
+
+            db.ref('gallery').on('value', snapshot => {
+                const data = snapshot.val();
+                window.galleryData = data ? Object.values(data) : [];
+                renderGallery();
+            });
+        }
+
+        /* --- 1. CHAT FEATURE --- */
+        function sendMessage(imageUrl = null) {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text && !imageUrl) return;
+
+            const msgData = {
+                sender: currentUser,
+                avatar: userAvatars[currentUser],
+                text: text,
+                image: imageUrl,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                timestamp: Date.now()
+            };
+
+            db.ref('chat').push(msgData);
+            input.value = '';
+        }
+
+        function handleChatKeyPress(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64Img = event.target.result;
+                sendMessage(base64Img);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderChat() {
+            const chat = window.chatData || [];
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = chat.map(m => {
+                const isMine = m.sender === currentUser;
+                return `
+                    <div class="message ${isMine ? 'mine' : 'other'}">
+                        <div class="message-header">
+                            <span>${m.avatar}</span> ${m.sender}
+                        </div>
+                        ${m.text ? `<div>${m.text}</div>` : ''}
+                        ${m.image ? `<img src="${m.image}" class="chat-img" alt="photo">` : ''}
+                        <div class="message-time">${m.time}</div>
+                    </div>
+                `;
+            }).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        /* --- 2. PLANNER FEATURE --- */
+        function addPlan() {
+            const time = document.getElementById('plan-time').value;
+            const text = document.getElementById('plan-text').value.trim();
+            if (!text) return;
+
+            db.ref('plans').push({
+                user: currentUser,
+                avatar: userAvatars[currentUser],
+                time: time || '--:--',
+                text: text,
+                timestamp: Date.now()
+            });
+
+            document.getElementById('plan-text').value = '';
+        }
+
+        function renderPlans() {
+            const plans = window.plansData || [];
+            const list = document.getElementById('plan-list');
+            list.innerHTML = plans.map(p => `
+                <li class="item-card">
+                    <div>
+                        <strong>${p.time} — ${p.avatar} ${p.user}</strong>
+                        <span>${p.text}</span>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        /* --- 3. MOODS FEATURE --- */
+        function addMood() {
+            const mood = document.getElementById('mood-type').value;
+            const note = document.getElementById('mood-note').value.trim();
+
+            db.ref('moods').push({
+                user: currentUser,
+                avatar: userAvatars[currentUser],
+                mood: mood,
+                note: note,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                timestamp: Date.now()
+            });
+
+            document.getElementById('mood-note').value = '';
+        }
+
+        function renderMoods() {
+            const moods = (window.moodsData || []).sort((a,b) => b.timestamp - a.timestamp);
+            const list = document.getElementById('mood-list');
+            list.innerHTML = moods.map(m => `
+                <li class="item-card">
+                    <div class="item-card-info">
+                        <strong>${m.avatar} ${m.user} (${m.time})</strong>
+                        <span style="font-weight: 700; color: var(--primary);">${m.mood}</span>
+                        ${m.note ? `<p style="font-size:0.85rem; color:#666; margin-top:3px;">${m.note}</p>` : ''}
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        /* --- 4. GALLERY FEATURE --- */
+        function addGalleryPhoto(e) {
+            const file = e.target.files[0];
+            const title = document.getElementById('gallery-title').value.trim();
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64Img = event.target.result;
+                db.ref('gallery').push({
+                    user: currentUser,
+                    title: title || 'საყვარელი ფოტო 🐾',
+                    image: base64Img,
+                    timestamp: Date.now()
+                });
+                document.getElementById('gallery-title').value = '';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderGallery() {
+            const gallery = (window.galleryData || []).sort((a,b) => b.timestamp - a.timestamp);
+            const grid = document.getElementById('gallery-grid');
+            grid.innerHTML = gallery.map(g => `
+                <div class="gallery-item">
+                    <img src="${g.image}" alt="photo">
+                    <p><b>${g.user}:</b> ${g.title}</p>
+                </div>
+            `).join('');
+        }
+
+        /* --- AVATAR MODAL --- */
+        function openAvatarModal() {
+            document.getElementById('avatar-modal').style.display = 'flex';
+        }
+
+        function closeAvatarModal() {
+            document.getElementById('avatar-modal').style.display = 'none';
+        }
+
+        function selectAvatar(emoji) {
+            userAvatars[currentUser] = emoji;
+            localStorage.setItem(`ga_avatar_${currentUser}`, emoji);
+            document.getElementById(`avatar-${currentUser}`).innerText = emoji;
+            closeAvatarModal();
+            renderChat();
+        }
+    </script>
+</body>
+</html>
+"""
+
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print("Updated index.html created successfully.")
